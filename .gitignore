@@ -1,0 +1,15 @@
+flujo.md
+CLAUDE.md
+
+# Secretos y entorno local (¡NUNCA subir!)
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Sistema
+.DS_Store
+Thumbs.db

@@ -1,0 +1,8 @@
+# Dependencias del backend de Finlytics
+
+# Driver de PostgreSQL para Python (psycopg 3). El extra [binary] trae
+# los binarios precompilados, sin necesidad de compilar nada en Windows.
+psycopg[binary]==3.3.4
+
+# Carga las variables del archivo .env (DATABASE_URL, claves, etc.)
+python-dotenv==1.0.1

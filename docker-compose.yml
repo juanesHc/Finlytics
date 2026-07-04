@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:16
+    container_name: finlytics-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-finlytics}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-finlytics_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-finlytics}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/dataF
+      - ./db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-finlytics} -d ${POSTGRES_DB:-finlytics}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
