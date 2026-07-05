@@ -46,7 +46,8 @@ def registerAnalysis(conn, ticker, analysis, fundamentals, price=None):
             " fundamentals = EXCLUDED.fundamentals," \
             " price_at_analysis = EXCLUDED.price_at_analysis, " \
             "generated_at = now()",
-            (ticker, Jsonb(analysis), Jsonb(fundamentals), price),
+            (ticker, Jsonb(analysis), Jsonb(fundamentals), price
+            ),
         )
     conn.commit()
 

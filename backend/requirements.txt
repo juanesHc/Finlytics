@@ -6,3 +6,9 @@ psycopg[binary]==3.3.4
 
 # Carga las variables del archivo .env (DATABASE_URL, claves, etc.)
 python-dotenv==1.0.1
+
+# Cliente HTTP para llamar a la API de FMP
+requests==2.32.3
+
+# SDK oficial de Anthropic (Claude) — genera el veredicto
+anthropic==0.116.0
