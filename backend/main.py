@@ -9,6 +9,7 @@ Docs automaticas en:  http://localhost:8000/docs
 import hashlib
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.staticfiles import StaticFiles
 
 from dtos import Analisis
 from errors import CuotaExcedida, TickerNoEncontrado
@@ -38,3 +39,9 @@ def get_analysis(ticker: str, request: Request):
         raise HTTPException(status_code=404, detail=str(e))
     except CuotaExcedida as e:
         raise HTTPException(status_code=429, detail=str(e))
+
+
+# Sirve el mini-frontend (index.html, style.css, script.js) en el mismo origen
+# que la API -> sin problemas de CORS. Debe montarse en "/" AL FINAL, despues de
+# las rutas /api, para que estas tengan prioridad. html=True sirve index.html en "/".
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")

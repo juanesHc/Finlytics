@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finlytics — Analista de acciones con IA</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <main class="app">
+    <!-- Encabezado -->
+    <header class="header">
+      <h1 class="logo">Fin<span>lytics</span></h1>
+      <p class="tagline">Analista de acciones con IA. Público, sin registro.</p>
+    </header>
+
+    <!-- Buscador -->
+    <form id="search-form" class="search">
+      <input
+        id="ticker-input"
+        class="search__input"
+        type="text"
+        placeholder="Escribe un ticker (ej: AAPL, MSFT, TSLA)"
+        autocomplete="off"
+        maxlength="10"
+        required
+      />
+      <button id="search-btn" class="search__btn" type="submit">Analizar</button>
+    </form>
+
+    <!-- Estado: cargando -->
+    <div id="loading" class="state hidden">
+      <div class="spinner"></div>
+      <p>Analizando…</p>
+    </div>
+
+    <!-- Estado: error -->
+    <div id="error" class="state state--error hidden"></div>
+
+    <!-- Resultado -->
+    <section id="result" class="result hidden">
+      <!-- Cabecera del resultado: ticker + precio + badge caché -->
+      <div class="result__top">
+        <div>
+          <h2 id="r-ticker" class="result__ticker"></h2>
+          <p id="r-nombre" class="result__nombre"></p>
+        </div>
+        <div class="result__price">
+          <span id="r-precio"></span>
+          <span id="r-cached" class="badge"></span>
+        </div>
+      </div>
+
+      <!-- Fundamentales -->
+      <div class="card">
+        <h3 class="card__title">Fundamentales</h3>
+        <dl class="grid">
+          <div><dt>Sector</dt><dd id="f-sector">—</dd></div>
+          <div><dt>Industria</dt><dd id="f-industria">—</dd></div>
+          <div><dt>Market Cap</dt><dd id="f-mcap">—</dd></div>
+          <div><dt>Beta</dt><dd id="f-beta">—</dd></div>
+        </dl>
+      </div>
+
+      <!-- Veredicto de la IA -->
+      <div class="card card--verdict">
+        <h3 class="card__title">Veredicto IA</h3>
+        <p id="v-veredicto" class="verdict__main"></p>
+
+        <div class="verdict__cols">
+          <div>
+            <h4 class="verdict__label verdict__label--good">Puntos fuertes</h4>
+            <ul id="v-fuertes" class="verdict__list"></ul>
+          </div>
+          <div>
+            <h4 class="verdict__label verdict__label--bad">Riesgos</h4>
+            <ul id="v-riesgos" class="verdict__list"></ul>
+          </div>
+        </div>
+
+        <p id="v-resumen" class="verdict__summary"></p>
+      </div>
+
+      <!-- Disclaimer que viene de la API -->
+      <p id="r-disclaimer" class="disclaimer"></p>
+    </section>
+  </main>
+
+  <script src="/script.js"></script>
+</body>
+</html>

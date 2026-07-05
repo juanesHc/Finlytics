@@ -1,0 +1,237 @@
+/* ============================================================
+   Finlytics — estilos. Paleta: verde + negro/gris (tema oscuro)
+   ============================================================ */
+
+:root {
+  --bg:        #0b0f0c;   /* casi negro con tinte verde */
+  --bg-soft:   #121814;   /* fondo de tarjetas */
+  --panel:     #171f1a;   /* paneles internos */
+  --border:    #24302a;   /* bordes sutiles */
+  --text:      #e7efe9;   /* texto principal (gris muy claro) */
+  --text-dim:  #8fa398;   /* texto secundario (gris verdoso) */
+  --green:     #22c55e;   /* verde principal */
+  --green-2:   #16a34a;   /* verde oscuro (hover) */
+  --green-glow:#22c55e55; /* verde translúcido para brillos */
+  --red:       #f87171;   /* riesgos */
+  --radius:    14px;
+  --shadow:    0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background:
+    radial-gradient(900px 500px at 50% -10%, #14261c 0%, transparent 60%),
+    var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+  padding: 2rem 1rem 4rem;
+}
+
+.app {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* ---------- Encabezado ---------- */
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.logo {
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--text);
+}
+.logo span { color: var(--green); }
+
+.tagline {
+  color: var(--text-dim);
+  margin-top: 0.35rem;
+  font-size: 0.95rem;
+}
+
+/* ---------- Buscador ---------- */
+.search {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.search__input {
+  flex: 1;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 1.05rem;
+  padding: 0.9rem 1.1rem;
+  outline: none;
+  text-transform: uppercase;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.search__input::placeholder { color: var(--text-dim); text-transform: none; }
+.search__input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px var(--green-glow);
+}
+
+.search__btn {
+  background: var(--green);
+  color: #04120a;
+  font-weight: 700;
+  font-size: 1rem;
+  border: none;
+  border-radius: var(--radius);
+  padding: 0 1.6rem;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.05s;
+}
+.search__btn:hover { background: var(--green-2); }
+.search__btn:active { transform: translateY(1px); }
+.search__btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ---------- Estados (cargando / error) ---------- */
+.state {
+  text-align: center;
+  color: var(--text-dim);
+  padding: 2rem 1rem;
+}
+.state--error {
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  border-radius: var(--radius);
+  color: #fca5a5;
+  padding: 1rem 1.2rem;
+}
+
+.spinner {
+  width: 34px; height: 34px;
+  margin: 0 auto 0.8rem;
+  border: 3px solid var(--border);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- Resultado ---------- */
+.result { display: flex; flex-direction: column; gap: 1.1rem; }
+
+.result__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.result__ticker { font-size: 1.9rem; font-weight: 800; color: var(--green); }
+.result__nombre { color: var(--text-dim); font-size: 0.95rem; }
+.result__price { text-align: right; font-size: 1.5rem; font-weight: 700; }
+
+.badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+.badge--cache { background: var(--green-glow); color: var(--green); }
+.badge--fresh { background: #3b82f633; color: #93c5fd; }
+
+/* ---------- Tarjetas ---------- */
+.card {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.3rem;
+  box-shadow: var(--shadow);
+}
+.card--verdict { border-left: 3px solid var(--green); }
+
+.card__title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-bottom: 0.9rem;
+}
+
+/* Grid de fundamentales */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem 1.2rem;
+}
+.grid dt { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+.grid dd { font-size: 1.05rem; font-weight: 600; margin-top: 0.15rem; }
+
+/* Veredicto */
+.verdict__main { font-size: 1.1rem; font-weight: 600; margin-bottom: 1.1rem; }
+
+.verdict__cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+  margin-bottom: 1.1rem;
+}
+.verdict__label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+.verdict__label--good { color: var(--green); }
+.verdict__label--bad { color: var(--red); }
+
+.verdict__list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+.verdict__list li {
+  position: relative;
+  padding-left: 1.1rem;
+  font-size: 0.92rem;
+  color: var(--text);
+}
+.verdict__list li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0.55em;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.verdict__label--good ~ .verdict__list li::before { background: var(--green); }
+.verdict__label--bad ~ .verdict__list li::before { background: var(--red); }
+
+.verdict__summary {
+  border-top: 1px solid var(--border);
+  padding-top: 0.9rem;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.disclaimer {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  opacity: 0.8;
+  margin-top: 0.3rem;
+}
+
+/* ---------- Utilidades ---------- */
+.hidden { display: none !important; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 560px) {
+  .search { flex-direction: column; }
+  .search__btn { padding: 0.85rem; }
+  .grid, .verdict__cols { grid-template-columns: 1fr; }
+  .result__top { flex-direction: column; }
+  .result__price { text-align: left; }
+}

@@ -29,7 +29,11 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-finlytics}:${POSTGRES_PASSWORD:-finlytics_dev}@db:5432/${POSTGRES_DB:-finlytics}
     ports:
       - "8000:8000"
-  
+    # Monta el mini-frontend dentro del contenedor (solo lectura). Asi FastAPI
+    # lo sirve en "/" y puedes editar HTML/CSS/JS y ver el cambio con solo
+    # refrescar el navegador (sin reconstruir la imagen).
+    volumes:
+      - ./frontend:/app/frontend:ro
     depends_on:
       db:
         condition: service_healthy
