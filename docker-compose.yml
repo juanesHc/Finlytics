@@ -10,13 +10,29 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/dataF
+      - pgdata:/var/lib/postgresql/data
       - ./db:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-finlytics} -d ${POSTGRES_DB:-finlytics}"]
       interval: 5s
       timeout: 5s
       retries: 5
+
+  web:
+    build: ./backend
+    container_name: finlytics-web
+    restart: unless-stopped
+   
+    env_file: .env
+
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-finlytics}:${POSTGRES_PASSWORD:-finlytics_dev}@db:5432/${POSTGRES_DB:-finlytics}
+    ports:
+      - "8000:8000"
+  
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   pgdata:

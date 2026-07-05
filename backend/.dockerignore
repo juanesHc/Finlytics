@@ -1,0 +1,4 @@
+# No mandar basura al contexto de build (mas rapido y mas seguro).
+__pycache__/
+*.py[cod]
+.env
