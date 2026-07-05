@@ -12,3 +12,7 @@ requests==2.32.3
 
 # SDK oficial de Anthropic (Claude) — genera el veredicto
 anthropic==0.116.0
+
+# API web
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
