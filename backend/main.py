@@ -11,9 +11,9 @@ import hashlib
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 
-from dtos import Analisis
+from dtos import Analisis, ChatRequest, ChatResponse
 from errors import CuotaExcedida, TickerNoEncontrado
-from service import analizar
+from service import analizar, chatear
 
 app = FastAPI(
     title="Finlytics",
@@ -37,6 +37,16 @@ def get_analysis(ticker: str, request: Request):
         return analizar(ip_hash, ticker)
     except TickerNoEncontrado as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except CuotaExcedida as e:
+        raise HTTPException(status_code=429, detail=str(e))
+
+
+@app.post("/api/chat", response_model=ChatResponse)
+def post_chat(body: ChatRequest, request: Request):
+    ip_hash = hash_ip(request.client.host)
+    try:
+        mensajes = [m.model_dump() for m in body.mensajes]
+        return ChatResponse(respuesta=chatear(ip_hash, mensajes))
     except CuotaExcedida as e:
         raise HTTPException(status_code=429, detail=str(e))
 

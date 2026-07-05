@@ -130,6 +130,40 @@
     </section>
   </main>
 
+  <!-- ============ Chat flotante ============ -->
+  <button id="chat-fab" class="chat-fab" type="button" aria-label="Abrir chat">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 11.5a8.38 8.38 0 0 1 -0.9 3.8 8.5 8.5 0 0 1 -7.6 4.7 8.38 8.38 0 0 1 -3.8 -0.9 L3 21 l1.9 -5.7 a8.38 8.38 0 0 1 -0.9 -3.8 8.5 8.5 0 0 1 4.7 -7.6 8.38 8.38 0 0 1 3.8 -0.9 h0.5 a8.48 8.48 0 0 1 8 8 z" />
+    </svg>
+  </button>
+
+  <div id="chat-panel" class="chat-panel hidden" role="dialog" aria-label="Asistente Finlytics">
+    <header class="chat-panel__head">
+      <span class="chat-panel__title">Asistente Finlytics</span>
+      <button id="chat-close" class="chat-panel__close" type="button" aria-label="Cerrar chat">&times;</button>
+    </header>
+
+    <div id="chat-messages" class="chat-messages"></div>
+
+    <form id="chat-form" class="chat-input">
+      <input
+        id="chat-text"
+        class="chat-input__field"
+        type="text"
+        placeholder="Escribe tu mensaje…"
+        autocomplete="off"
+        maxlength="500"
+      />
+      <button class="chat-input__send" type="submit" aria-label="Enviar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="22" y1="2" x2="11" y2="13" />
+          <polygon points="22 2 15 22 11 13 2 9 22 2" />
+        </svg>
+      </button>
+    </form>
+  </div>
+
   <script src="/script.js"></script>
+  <script src="/chat.js"></script>
 </body>
 </html>

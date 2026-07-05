@@ -2,7 +2,7 @@ import anthropic
 from dotenv import load_dotenv
 
 from utils import getDataFromEnv
-from dtos import Fundamentales, Veredicto
+from dtos import  Veredicto
 
 load_dotenv()
 
@@ -13,12 +13,29 @@ MAX_TOKENS = int(getDataFromEnv("MAX_TOKENS"))
 SYSTEM = str(getDataFromEnv("PROMPT_INSTRUCCIONES"))
 
 
-def generated_verdict(fundamentales):
-    """Genera el veredicto de una accion con Claude (Haiku).
+MAX_TOKENS_CHAT = 300
+CHAT_SYSTEM = (getDataFromEnv("CHAT_SYSTEM_PROMPT") )
 
-    Recibe un DTO Fundamentales (el ticker viaja dentro).
-    Devuelve (Veredicto, uso_tokens).
-    """
+
+def chat_reply(mensajes):
+
+    respuesta = client.messages.create(
+        model=MODELO,
+        max_tokens=MAX_TOKENS_CHAT,
+        temperature=0.3,
+        system=CHAT_SYSTEM,
+        messages=mensajes,
+    )
+    texto = respuesta.content[0].text
+    uso = {
+        "input": respuesta.usage.input_tokens,
+        "output": respuesta.usage.output_tokens,
+    }
+    return texto, uso
+
+
+def generated_verdict(fundamentales):
+
     respuesta = client.messages.parse(
         model=MODELO,
         max_tokens=MAX_TOKENS,

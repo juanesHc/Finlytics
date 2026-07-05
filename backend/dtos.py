@@ -20,10 +20,24 @@ class Veredicto(BaseModel):
 
 
 class Analisis(BaseModel):
-   
+
     ticker: str
     precio: float
     fundamentales: Fundamentales
     veredicto: Veredicto
-    cached: bool              
+    cached: bool
     disclaimer: str = "Esto no es asesoria financiera. Solo con fines informativos."
+
+
+# --- Chat ---
+class MensajeChat(BaseModel):
+    role: str        # "user" | "assistant"
+    content: str
+
+
+class ChatRequest(BaseModel):
+    mensajes: list[MensajeChat]
+
+
+class ChatResponse(BaseModel):
+    respuesta: str

@@ -9,6 +9,7 @@ load_dotenv()
 DATABASE_URL = getDataFromEnv("DATABASE_URL")
 
 LIMITE_DIARIO = 5
+LIMITE_CHAT_DIARIO = 10
 
 
 def connect():
@@ -26,6 +27,11 @@ def checkDailyQuotas(conn, ip_hash):
         (count,) = cur.fetchone()
     conn.commit()
     return count
+
+
+def checkChatQuota(conn, ip_hash):
+    key = f"chat:{ip_hash}"
+    return checkDailyQuotas(conn, key)
 
 
 def readAnalysis(conn, ticker):
