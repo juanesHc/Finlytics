@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finlytics — Exportar CSV</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <a href="/" class="back">← Volver al inicio</a>
+      <h1 class="logo">Fin<span>lytics</span></h1>
+      <p class="tagline">Exportar el análisis como .csv</p>
+    </header>
+
+    <div class="search">
+      <input
+        class="search__input"
+        type="text"
+        placeholder="Ticker (ej: AAPL)"
+        autocomplete="off"
+        maxlength="10"
+      />
+      <button class="search__btn" type="button">Descargar CSV</button>
+    </div>
+
+    <div class="wip">
+      <span class="wip__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14.7 6.3a4 4 0 0 0 -5.4 5.4 L3 18 v3 h3 l6.3 -6.3 a4 4 0 0 0 5.4 -5.4 l-2.6 2.6 -2 -2 2.6 -2.6 z" />
+        </svg>
+      </span>
+      Pantalla lista. La <strong>descarga del .csv</strong> se arma en el frontend
+      con el análisis ya cargado (0 tokens) en el siguiente paso.
+    </div>
+  </main>
+</body>
+</html>

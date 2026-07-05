@@ -224,6 +224,80 @@ body {
   margin-top: 0.3rem;
 }
 
+/* ---------- Tarjetas de funcionalidades (home) ---------- */
+.features { margin-top: 4rem; }
+.features__title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  text-align: center;
+  margin-bottom: 1.3rem;
+}
+.features__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.4rem;
+}
+.feature-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-height: 180px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.8rem 1.6rem;
+  text-decoration: none;
+  color: var(--text);
+  transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
+}
+.feature-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--green);
+  box-shadow: 0 10px 28px var(--green-glow);
+}
+.feature-card__icon {
+  display: inline-flex;
+  color: var(--green);
+  margin-bottom: 0.2rem;
+}
+.feature-card__icon svg { width: 38px; height: 38px; }
+.feature-card__name { font-weight: 700; font-size: 1.15rem; }
+.feature-card__desc { font-size: 0.9rem; color: var(--text-dim); line-height: 1.45; }
+
+/* ---------- Navegacion a paginas internas ---------- */
+.back {
+  display: inline-block;
+  color: var(--green);
+  text-decoration: none;
+  font-size: 0.9rem;
+  margin-bottom: 0.9rem;
+  font-weight: 600;
+}
+.back:hover { text-decoration: underline; }
+
+/* Inputs de "comparar 2 empresas" (dos columnas) */
+.compare-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+/* ---------- Estado "en construccion" ---------- */
+.wip {
+  text-align: center;
+  padding: 2.6rem 1.4rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  background: var(--bg-soft);
+}
+.wip__icon { display: inline-flex; color: var(--green); margin-bottom: 0.7rem; }
+.wip__icon svg { width: 42px; height: 42px; }
+.wip strong { color: var(--green); }
+
 /* ---------- Utilidades ---------- */
 .hidden { display: none !important; }
 
@@ -234,4 +308,6 @@ body {
   .grid, .verdict__cols { grid-template-columns: 1fr; }
   .result__top { flex-direction: column; }
   .result__price { text-align: left; }
+  .features__grid { grid-template-columns: 1fr; }
+  .compare-inputs { grid-template-columns: 1fr; }
 }
