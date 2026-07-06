@@ -1,11 +1,3 @@
-// ============================================================
-//  Finlytics — chat flotante con Haiku.
-//  El historial vive aquí (frontend); el backend aplica su propia
-//  cuota diaria y recorta a "memoria corta" (últimos mensajes).
-// ============================================================
-
-// IIFE: aísla las variables de este archivo para que NO choquen con las
-// globales de script.js (ambos se cargan juntos en el home).
 (function () {
 const fab       = document.getElementById("chat-fab");
 const panel     = document.getElementById("chat-panel");
@@ -14,17 +6,14 @@ const form      = document.getElementById("chat-form");
 const textInput = document.getElementById("chat-text");
 const messages  = document.getElementById("chat-messages");
 
-// Historial de la conversación: [{role: "user"|"assistant", content}]
 const historial = [];
-let saludado = false; // ¿ya mostramos el saludo inicial?
+let saludado = false;
 
-// --- Abrir / cerrar el panel ---
-function abrirChat() {
+function openChat() {
   panel.classList.remove("hidden");
   fab.classList.add("chat-fab--open");
   if (!saludado) {
-    // Saludo local (no llama a la API -> 0 tokens).
-    pintarMensaje(
+    renderMessage(
       "assistant",
       "¡Hola! Soy el asistente de Finlytics. Pregúntame sobre acciones, " +
       "conceptos de inversión o finanzas. (Esto no es asesoría financiera.)"
@@ -34,18 +23,17 @@ function abrirChat() {
   textInput.focus();
 }
 
-function cerrarChat() {
+function closeChat() {
   panel.classList.add("hidden");
   fab.classList.remove("chat-fab--open");
 }
 
 fab.addEventListener("click", () => {
-  panel.classList.contains("hidden") ? abrirChat() : cerrarChat();
+  panel.classList.contains("hidden") ? openChat() : closeChat();
 });
-closeBtn.addEventListener("click", cerrarChat);
+closeBtn.addEventListener("click", closeChat);
 
-// --- Pintar un mensaje en el hilo ---
-function pintarMensaje(role, texto) {
+function renderMessage(role, texto) {
   const div = document.createElement("div");
   div.className = "chat-msg " + (role === "user" ? "chat-msg--user" : "chat-msg--bot");
   div.textContent = texto;
@@ -54,8 +42,7 @@ function pintarMensaje(role, texto) {
   return div;
 }
 
-// Indicador de "escribiendo…" mientras esperamos a Haiku.
-function pintarTyping() {
+function renderTyping() {
   const div = document.createElement("div");
   div.className = "chat-msg chat-msg--bot chat-typing";
   div.innerHTML = "<span></span><span></span><span></span>";
@@ -64,13 +51,11 @@ function pintarTyping() {
   return div;
 }
 
-// --- Enviar mensaje ---
-async function enviar(texto) {
-  // 1. Pintar y registrar el mensaje del usuario.
-  pintarMensaje("user", texto);
+async function send(texto) {
+  renderMessage("user", texto);
   historial.push({ role: "user", content: texto });
 
-  const typing = pintarTyping();
+  const typing = renderTyping();
   textInput.disabled = true;
 
   try {
@@ -88,16 +73,16 @@ async function enviar(texto) {
         const err = await resp.json();
         if (err.detail) detalle = err.detail;
       } catch (_) {}
-      pintarMensaje("assistant", "⚠ " + detalle);
+      renderMessage("assistant", "⚠ " + detalle);
       return;
     }
 
     const data = await resp.json();
-    pintarMensaje("assistant", data.respuesta);
+    renderMessage("assistant", data.respuesta);
     historial.push({ role: "assistant", content: data.respuesta });
   } catch (_) {
     typing.remove();
-    pintarMensaje("assistant", "⚠ No pude conectar con el servidor.");
+    renderMessage("assistant", "⚠ No pude conectar con el servidor.");
   } finally {
     textInput.disabled = false;
     textInput.focus();
@@ -109,6 +94,6 @@ form.addEventListener("submit", (e) => {
   const texto = textInput.value.trim();
   if (!texto) return;
   textInput.value = "";
-  enviar(texto);
+  send(texto);
 });
 })();

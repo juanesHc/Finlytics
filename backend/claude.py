@@ -2,7 +2,7 @@ import anthropic
 from dotenv import load_dotenv
 
 from utils import getDataFromEnv
-from dtos import  Veredicto
+from dtos import Veredicto
 
 load_dotenv()
 
@@ -12,13 +12,11 @@ MODELO = getDataFromEnv("CLAUDE_MODEL")
 MAX_TOKENS = int(getDataFromEnv("MAX_TOKENS"))
 SYSTEM = str(getDataFromEnv("PROMPT_INSTRUCCIONES"))
 
-
 MAX_TOKENS_CHAT = 300
-CHAT_SYSTEM = (getDataFromEnv("CHAT_SYSTEM_PROMPT") )
+CHAT_SYSTEM = getDataFromEnv("CHAT_SYSTEM_PROMPT")
 
 
-def chat_reply(mensajes):
-
+def chatReply(mensajes):
     respuesta = client.messages.create(
         model=MODELO,
         max_tokens=MAX_TOKENS_CHAT,
@@ -34,8 +32,7 @@ def chat_reply(mensajes):
     return texto, uso
 
 
-def generated_verdict(fundamentales):
-
+def generateVerdict(fundamentales):
     respuesta = client.messages.parse(
         model=MODELO,
         max_tokens=MAX_TOKENS,
@@ -60,5 +57,3 @@ def generated_verdict(fundamentales):
         "output": respuesta.usage.output_tokens,
     }
     return veredicto, uso
-
-

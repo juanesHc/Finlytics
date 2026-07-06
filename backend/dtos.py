@@ -12,15 +12,13 @@ class Fundamentales(BaseModel):
 
 
 class Veredicto(BaseModel):
-
-    veredicto: str             
-    puntos_fuertes: list[str] 
-    riesgos: list[str]        
-    resumen: str              
+    veredicto: str
+    puntos_fuertes: list[str]
+    riesgos: list[str]
+    resumen: str
 
 
 class Analisis(BaseModel):
-
     ticker: str
     precio: float
     fundamentales: Fundamentales
@@ -29,9 +27,8 @@ class Analisis(BaseModel):
     disclaimer: str = "Esto no es asesoria financiera. Solo con fines informativos."
 
 
-# --- Chat ---
 class MensajeChat(BaseModel):
-    role: str        # "user" | "assistant"
+    role: str
     content: str
 
 

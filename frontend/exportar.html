@@ -18,29 +18,50 @@
 
     <header class="header">
       <h1 class="logo">Fin<span>lytics</span></h1>
-      <p class="tagline">Exportar el análisis como .csv</p>
+      <p class="tagline">Estados financieros: vista previa, gráfico y CSV</p>
     </header>
 
     <div class="search">
       <input
         class="search__input"
         type="text"
-        placeholder="Ticker (ej: AAPL)"
+        placeholder="Empresa o ticker (ej: Apple, AAPL)"
         autocomplete="off"
-        maxlength="10"
+        maxlength="40"
       />
-      <button class="search__btn" type="button">Descargar CSV</button>
+      <button class="search__btn" type="button">Buscar</button>
     </div>
 
-    <div class="wip">
-      <span class="wip__icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M14.7 6.3a4 4 0 0 0 -5.4 5.4 L3 18 v3 h3 l6.3 -6.3 a4 4 0 0 0 5.4 -5.4 l-2.6 2.6 -2 -2 2.6 -2.6 z" />
-        </svg>
-      </span>
-      Pantalla lista. La <strong>descarga del .csv</strong> se arma en el frontend
-      con el análisis ya cargado (0 tokens) en el siguiente paso.
-    </div>
+    <p id="export-status" class="export-status" role="status"></p>
+
+    <!-- Resultados de la búsqueda por nombre -->
+    <ul id="search-results" class="search-results hidden"></ul>
+
+    <!-- Panel de estados financieros: gráfico + tabla + descarga -->
+    <section id="financials" class="financials hidden">
+      <div class="financials__head">
+        <h2 id="financials-title" class="financials__title"></h2>
+        <div class="financials__controls">
+          <label class="years-label">
+            Años
+            <select id="years-select" class="years-select">
+              <option value="3">3</option>
+              <option value="5" selected>5</option>
+              <option value="10">10</option>
+            </select>
+          </label>
+          <button id="download-csv" class="btn-download" type="button">Descargar CSV</button>
+        </div>
+      </div>
+
+      <div class="chart-wrap">
+        <svg id="revenue-chart" class="revenue-chart" viewBox="0 0 600 240" role="img" aria-label="Ingresos por año"></svg>
+      </div>
+
+      <div class="table-wrap">
+        <table id="financials-table" class="fin-table"></table>
+      </div>
+    </section>
   </main>
 
   <!-- ============ Chat flotante ============ -->
@@ -76,6 +97,7 @@
     </form>
   </div>
 
+  <script src="/export.js"></script>
   <script src="/chat.js"></script>
 </body>
 </html>
