@@ -32,15 +32,29 @@
       <button class="search__btn" type="button">Ver histórico</button>
     </div>
 
-    <div class="wip">
-      <span class="wip__icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M14.7 6.3a4 4 0 0 0 -5.4 5.4 L3 18 v3 h3 l6.3 -6.3 a4 4 0 0 0 5.4 -5.4 l-2.6 2.6 -2 -2 2.6 -2.6 z" />
-        </svg>
-      </span>
-      Pantalla lista. La <strong>gráfica del histórico</strong> se conecta en el
-      siguiente paso (endpoint FMP + caché en Postgres + Chart.js).
-    </div>
+    <p id="history-status" class="export-status" role="status"></p>
+
+    <section id="history" class="history hidden">
+      <div class="history__head">
+        <h2 id="history-title" class="financials__title"></h2>
+        <div class="financials__controls">
+          <span id="history-meta" class="history__meta"></span>
+          <label class="years-label">
+            Rango
+            <select id="range-select" class="years-select">
+              <option value="30">1M</option>
+              <option value="180">6M</option>
+              <option value="365" selected>1A</option>
+              <option value="1825">5A</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="chart-wrap">
+        <svg id="price-chart" class="price-chart" viewBox="0 0 640 280" role="img" aria-label="Precio en el tiempo"></svg>
+      </div>
+    </section>
   </main>
 
   <!-- ============ Chat flotante ============ -->
@@ -76,6 +90,7 @@
     </form>
   </div>
 
+  <script src="/historico.js"></script>
   <script src="/chat.js"></script>
 </body>
 </html>

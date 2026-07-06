@@ -39,14 +39,10 @@
     </div>
     <button class="search__btn" type="button" style="width:100%">Comparar</button>
 
-    <div class="wip" style="margin-top:1.2rem">
-      <span class="wip__icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M14.7 6.3a4 4 0 0 0 -5.4 5.4 L3 18 v3 h3 l6.3 -6.3 a4 4 0 0 0 5.4 -5.4 l-2.6 2.6 -2 -2 2.6 -2.6 z" />
-        </svg>
-      </span>
-      Pantalla lista. La <strong>comparación lado a lado</strong> reutilizará el
-      endpoint de análisis (0 tokens si están cacheados) en el siguiente paso.
+    <p id="compare-status" class="export-status" role="status"></p>
+
+    <div class="table-wrap">
+      <table id="compare-result" class="fin-table hidden"></table>
     </div>
   </main>
 
@@ -83,6 +79,7 @@
     </form>
   </div>
 
+  <script src="/comparar.js"></script>
   <script src="/chat.js"></script>
 </body>
 </html>

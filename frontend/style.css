@@ -428,6 +428,25 @@ body {
 }
 .fin-table thead th { color: var(--green); font-weight: 700; }
 
+/* Histórico de precios */
+.history { margin-top: 2rem; }
+.history__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+}
+.history__meta { color: var(--text-dim); font-size: 0.95rem; }
+.history__meta .up   { color: var(--green); font-weight: 700; }
+.history__meta .down { color: #f87171; font-weight: 700; }
+
+.price-chart { width: 100%; height: auto; display: block; }
+.price-chart .area { fill: rgba(34, 197, 94, 0.12); }
+.price-chart .line { fill: none; stroke: var(--green); stroke-width: 2; }
+.price-chart .axis-label { fill: var(--text-dim); font-size: 11px; }
+
 /* ============================================================
    Chat flotante
    ============================================================ */

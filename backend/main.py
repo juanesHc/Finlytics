@@ -1,16 +1,17 @@
+from datetime import date, timedelta
 import hashlib
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.staticfiles import StaticFiles
 
-from dtos import Analisis, ChatRequest, ChatResponse
+from dtos import Analisis, ChatRequest, ChatResponse , Fundamentales
 from errors import CuotaExcedida, TickerNoEncontrado
-from fmp import getFinancialStatements, searchByName
+from fmp import getDataFromFMP, getFinancialStatements, getPriceHistory, searchByName
 from service import analyze, chat
 
 app = FastAPI(
     title="Finlytics",
-    description="Analista de acciones con IA. Publico, sin registro.",
+    description="Analista de acciones con IA. Publico.",
 )
 
 
@@ -57,6 +58,25 @@ def getFinancials(ticker: str, years: int = Query(5, ge=1, le=20)):
             status_code=404,
             detail=f"No hay estados financieros para '{ticker.upper()}'.",
         )
+    return data
+
+@app.get("/api/profile/{ticker}", response_model=Fundamentales)
+def getProfile(ticker: str):
+    data = getDataFromFMP(ticker)
+    if data is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No hay perfil para '{ticker.upper()}'.",
+        )
+    return data
+
+@app.get("/api/history/{ticker}")
+def getHistory(ticker: str, days: int = Query(365, ge=1, le=1825)):
+    toDate = date.today()
+    fromDate = toDate - timedelta(days=days)
+    data = getPriceHistory(ticker, fromDate.isoformat(), toDate.isoformat())
+    if data is None :
+        raise HTTPException(404, f"No hay histórico para '{ticker.upper()}'.")
     return data
 
 

@@ -59,3 +59,18 @@ def getFinancialStatements(ticker, years=5):
     if not data or not isinstance(data, list):
         return None
     return data
+
+def getPriceHistory(ticker, fromDate, toDate):
+    url = f"{BASE_URL_FMP}/historical-price-eod/light"
+    r = requests.get(
+        url,
+        params={"symbol": ticker.upper(), "from": fromDate, "to": toDate, "apikey": FMP_API_KEY},
+        timeout=20,
+    )
+    try:
+        data = r.json()
+    except ValueError:
+        return None
+    if not data or not isinstance(data, list):
+        return None
+    return data
