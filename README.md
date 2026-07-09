@@ -1,210 +1,202 @@
-# Finlytics 📈🤖
+# Finlytics
 
 **Analista de acciones con IA — público, sin registro.**
 
 Escribes un ticker (ej. `AAPL`) y Finlytics te devuelve precio, fundamentales
 clave y **un veredicto en lenguaje natural generado por Claude** ("sólida pero
-cara frente a su sector"). Todo el estado vive en la URL — no hay cuentas ni login.
+cara frente a su sector"). Sin cuentas ni login.
 
-> Estado del proyecto: **fase de diseño**. Este documento define el propósito,
-> la arquitectura, el esquema de datos y las decisiones. Todavía no hay código.
+> Estado: **funcionando**. Backend + mini-frontend + chatbot operativos, en fase
+> de **preparación para despliegue** (PaaS: Render).
 
 ---
 
-## 1. Propósito
+## 1. Qué hace
 
-Democratizar el análisis fundamental: cualquiera pega un ticker y obtiene, en
-segundos, lo que normalmente exige leer un balance y saber interpretarlo. La
-gracia no es mostrar números (eso ya lo hacen mil webs) sino **traducirlos a una
-opinión clara y accionable** usando un LLM.
+- **Análisis con veredicto IA** — fundamentales de FMP + un veredicto de Claude
+  (Haiku) cacheado en Postgres.
+- **Chatbot** — asistente flotante en todas las pantallas, responde dudas de
+  inversión con Haiku (cuota propia).
+- **Exportar CSV** — estados financieros (income statement) de FMP: vista previa,
+  gráfico de ingresos y descarga en `.csv`.
+- **Comparar** — dos empresas lado a lado (precio, market cap, beta, sector…).
+- **Histórico de precios** — gráfico de línea del precio en el tiempo, con rango.
 
 **Principios de producto:**
 
-- **Público y sin fricción** — sin registro, sin cookies de sesión, sin paywall.
-- **Compartible** — cada análisis es una URL (`/analisis/AAPL`).
-- **Honesto** — el veredicto siempre lleva disclaimer: *no es asesoría financiera*.
+- **Público y sin fricción** — sin registro, sin paywall.
+- **Honesto** — todo veredicto lleva disclaimer: *no es asesoría financiera*.
 
 ---
 
 ## 2. Arquitectura
 
-Interfaz elegida: **API JSON + mini-frontend** (una página HTML que consume la API).
+Interfaz: **API JSON + mini-frontend** (páginas HTML que consumen la API, servidas
+por la misma FastAPI → mismo origen, sin CORS).
 
-| Capa            | Tecnología          | Rol                                                    |
-| --------------- | ------------------- | ------------------------------------------------------ |
-| Backend / API   | **Python (FastAPI)**| orquesta FMP + Claude, sirve la API y la página        |
-| IA              | **Claude API**      | genera el veredicto (con caché agresiva)               |
-| Datos de mercado| **FMP** (Financial Modeling Prep) | precios, fundamentales, noticias         |
-| Persistencia    | **PostgreSQL**      | caché de análisis, rate-limit, tickers populares       |
-| Empaquetado     | **Docker Compose**  | servicios `web` (Python) + `db` (Postgres)             |
+| Capa             | Tecnología                        | Rol                                            |
+| ---------------- | --------------------------------- | ---------------------------------------------- |
+| Backend / API    | **Python (FastAPI)**              | orquesta FMP + Claude, sirve API y frontend    |
+| IA               | **Claude API** (Haiku)            | genera el veredicto y responde el chat         |
+| Datos de mercado | **FMP** (Financial Modeling Prep) | perfil, fundamentales, estados, históricos     |
+| Persistencia     | **PostgreSQL**                    | caché de análisis + rate-limit por IP          |
+| Empaquetado      | **Docker Compose**                | servicios `web` (Python) + `db` (Postgres)     |
 
 ```
                     ┌──────────────┐
-   navegador  ──►   │  mini-front  │  (HTML + fetch a la API)
+   navegador  ──►   │  mini-front  │  (HTML + fetch a la API, mismo origen)
                     └──────┬───────┘
-                           │ GET /api/analysis/{ticker}
+                           │ GET /api/...
                     ┌──────▼───────┐        ┌──────────────┐
-                    │   FastAPI    │───────►│  PostgreSQL  │  (caché + rate-limit)
+                    │   FastAPI    │───────►│  PostgreSQL  │  (caché + cuota diaria)
                     │   (Python)   │◄───────│              │
                     └──┬────────┬──┘        └──────────────┘
                        │        │
-              ┌────────▼──┐  ┌──▼─────────┐
-              │   FMP     │  │  Claude    │  (solo si no hay caché fresca)
+              ┌────────▼──┐  ┌──▼──────────┐
+              │   FMP     │  │   Claude    │  (solo si no hay caché fresca)
               │ (datos)   │  │  (veredicto)│
-              └───────────┘  └────────────┘
+              └───────────┘  └─────────────┘
 ```
 
 ---
 
-## 3. Estrategia de mínimo consumo de tokens ⭐
+## 3. Regla de oro: pocos tokens
 
-El objetivo explícito del proyecto: **que Python + la API de Claude brillen,
-pero gastando MUY pocos tokens.** Todo el diseño gira en torno a esto.
+El requisito no negociable: **minimizar el consumo de la API de Claude.**
 
-### 3.1 Caché primero (la idea central)
-
-Claude solo trabaja **una vez por ticker** y su respuesta se guarda en Postgres:
-
-```
-GET /AAPL
-   │
-   ├─ ¿Análisis en Postgres con antigüedad < TTL?  ──SÍ──►  servir cacheado   (0 tokens)
-   │
-   └─NO─► FMP trae datos ─► Claude genera veredicto (1 llamada) ─► guardar en Postgres
-```
-
-Como los tickers populares (AAPL, TSLA, NVDA...) se repiten constantemente, se
-espera que **la gran mayoría de visitas cuesten 0 tokens**.
-
-- **TTL propuesto:** 24 h para el veredicto (los fundamentales apenas cambian
-  intradía). El precio se puede refrescar aparte, sin llamar a Claude.
-
-### 3.2 Salidas cortas y deterministas
-
-- `max_tokens` bajo y **formato de salida fijo** (JSON estructurado con campos
-  acotados: `veredicto`, `puntos_fuertes[]`, `riesgos[]`, `resumen`).
-- `temperature` baja → respuestas consistentes y reproducibles.
-
-### 3.3 Prompt caching de Anthropic
-
-- La parte fija del prompt (instrucciones + esquema de salida) se marca como
-  cacheable → descuento en tokens de **entrada** en llamadas repetidas.
-
-### 3.4 Blindaje anti-abuso (app pública sin login)
-
-Una app pública que llama a un LLM puede sufrir *token drain* si alguien la
-spammea. Mitigaciones:
-
-- **Validar el ticker contra FMP ANTES de llamar a Claude** — si el símbolo no
-  existe, se corta ahí (FMP es barato/gratis; Claude no).
-- **Rate-limit por IP** (tabla en Postgres o Redis futuro).
-- **Tope global diario** de análisis *frescos* (nuevas llamadas a Claude) como
-  red de seguridad configurable por env var.
-- **Sin procesos en background** que llamen a Claude solos — siempre bajo demanda.
+- **Caché primero** — el veredicto de un ticker se genera **una vez** y se guarda
+  en Postgres (TTL 24 h). La mayoría de peticiones repetidas cuestan **0 tokens**.
+- **Validar el ticker en FMP ANTES de llamar a Claude** — corta símbolos falsos gratis.
+- **Salida corta y estructurada** — `max_tokens` bajo, JSON de campos fijos,
+  `temperature` baja.
+- **Rate-limit por IP** — 5 análisis/día y 10 mensajes de chat/día (tabla
+  `daily_quota`, UPSERT atómico).
+- **Las funciones de datos puros de FMP** (perfil, estados, histórico, búsqueda)
+  **no llaman a Claude** → 0 tokens.
 
 ---
 
 ## 4. Esquema de datos (PostgreSQL)
 
-> Propuesta inicial — sujeta a ajuste al implementar.
+Definido en `db/schema.sql` (todo con `CREATE TABLE IF NOT EXISTS`, idempotente).
 
 ### `analysis` — caché de veredictos de Claude
-| columna         | tipo          | notas                                            |
-| --------------- | ------------- | ------------------------------------------------ |
-| `ticker`        | `text` PK     | símbolo en mayúsculas (ej. `AAPL`)               |
-| `payload`       | `jsonb`       | veredicto completo generado por Claude           |
-| `fundamentals`  | `jsonb`       | snapshot de datos FMP usados para el análisis    |
-| `model`         | `text`        | modelo de Claude usado (para invalidar futuro)   |
-| `input_tokens`  | `int`         | tokens gastados (métrica de coste)               |
-| `output_tokens` | `int`         | tokens gastados (métrica de coste)               |
-| `generated_at`  | `timestamptz` | para calcular el TTL                              |
+| columna             | tipo            | notas                                     |
+| ------------------- | --------------- | ----------------------------------------- |
+| `ticker`            | `text` PK       | símbolo en mayúsculas                     |
+| `analysis`          | `jsonb`         | veredicto generado por Claude             |
+| `fundamentals`      | `jsonb`         | snapshot de datos FMP del análisis        |
+| `price_at_analysis` | `numeric(14,4)` | precio al momento del análisis            |
+| `generated_at`      | `timestamptz`   | para calcular el TTL (24 h)               |
 
-### `rate_limit` — control de abuso por IP
-| columna       | tipo          | notas                                    |
-| ------------- | ------------- | ---------------------------------------- |
-| `ip_hash`     | `text`        | hash de la IP (no guardar IP en claro)   |
-| `window_start`| `timestamptz` | inicio de la ventana de conteo           |
-| `count`       | `int`         | peticiones en la ventana                 |
+### `daily_quota` — rate-limit por IP y día
+| columna    | tipo      | notas                                                    |
+| ---------- | --------- | -------------------------------------------------------- |
+| `ip_hash`  | `text`    | hash SHA-256 de la IP (nunca en claro)                   |
+| `day`      | `date`    | día de la ventana                                        |
+| `count`    | `integer` | peticiones en el día · PK `(ip_hash, day)`               |
 
-### `ticker_stats` — popularidad (para métricas / trending)
-| columna       | tipo          | notas                                    |
-| ------------- | ------------- | ---------------------------------------- |
-| `ticker`      | `text` PK     |                                          |
-| `hits`        | `bigint`      | veces consultado                         |
-| `last_seen`   | `timestamptz` |                                          |
+> El chat reusa esta tabla con clave namespaced `chat:<ip_hash>` (cuota separada).
+
+### `ticker_stats` — popularidad (reservada para *trending*)
+| columna     | tipo          | notas                    |
+| ----------- | ------------- | ------------------------ |
+| `ticker`    | `text` PK     |                          |
+| `hits`      | `bigint`      | veces consultado         |
+| `last_seen` | `timestamptz` |                          |
 
 ---
 
-## 5. Contrato de la API (borrador)
+## 5. API
 
-| Método | Ruta                       | Descripción                                              |
-| ------ | -------------------------- | ------------------------------------------------------- |
-| `GET`  | `/`                        | sirve el mini-frontend (HTML)                           |
-| `GET`  | `/api/analysis/{ticker}`   | análisis completo (cacheado o recién generado)          |
-| `GET`  | `/api/quote/{ticker}`      | solo precio en vivo (sin Claude, refresco barato)       |
-| `GET`  | `/api/trending`            | tickers más consultados (de `ticker_stats`)             |
-| `GET`  | `/health`                  | healthcheck para Docker                                  |
+| Método | Ruta                              | Descripción                                            | Claude |
+| ------ | --------------------------------- | ------------------------------------------------------ | :----: |
+| `GET`  | `/`                               | mini-frontend (HTML)                                   |   —    |
+| `GET`  | `/health`                         | healthcheck                                            |   —    |
+| `GET`  | `/api/analysis/{ticker}`          | análisis con veredicto (cacheado o generado)           |   sí   |
+| `POST` | `/api/chat`                       | mensaje al chatbot                                     |   sí   |
+| `GET`  | `/api/search?q=`                  | busca empresas por nombre (FMP)                        |   —    |
+| `GET`  | `/api/profile/{ticker}`           | fundamentales (Comparar)                               |   —    |
+| `GET`  | `/api/financials/{ticker}?years=` | income statement (Exportar CSV)                        |   —    |
+| `GET`  | `/api/history/{ticker}?days=`     | histórico de precios                                   |   —    |
 
-**Ejemplo de respuesta `/api/analysis/AAPL`:**
+**Ejemplo `/api/analysis/AAPL`:**
 ```json
 {
   "ticker": "AAPL",
-  "price": 213.55,
-  "fundamentals": { "pe": 33.1, "roe": 1.47, "debtToEquity": 1.87, "...": "..." },
-  "analysis": {
+  "precio": 213.55,
+  "fundamentales": {
+    "ticker": "AAPL", "nombre": "Apple Inc.", "precio": 213.55,
+    "sector": "Technology", "industria": "Consumer Electronics",
+    "market_cap": 3200000000000, "beta": 1.2
+  },
+  "veredicto": {
     "veredicto": "Sólida pero con valoración exigente",
     "puntos_fuertes": ["Márgenes altísimos", "Recompras agresivas"],
-    "riesgos": ["PER por encima de su media histórica", "Dependencia del iPhone"],
+    "riesgos": ["Múltiplo por encima de su media", "Dependencia del iPhone"],
     "resumen": "Calidad indiscutible; el precio ya descuenta mucho optimismo."
   },
   "cached": true,
-  "generated_at": "2026-07-04T12:00:00Z",
-  "disclaimer": "Esto no es asesoría financiera."
+  "disclaimer": "Esto no es asesoria financiera. Solo con fines informativos."
 }
 ```
 
 ---
 
-## 6. Decisiones tomadas
+## 6. Correr en local (Docker Compose)
 
-- **Propósito:** analista de acciones con IA (vs. comparador / noticias / educativo).
-- **Interfaz:** API JSON + mini-frontend (vs. HTML server-side puro / solo API).
-- **Prioridad #1:** que Python + Claude brillen **gastando pocos tokens** → la
-  caché en Postgres es el corazón del diseño, no un añadido.
-- **Sin registro:** el estado vive en la URL; nada de cuentas de usuario.
+```bash
+cp .env.example .env      # rellena FMP_API_KEY, ANTHROPIC_API_KEY, prompts...
+docker compose up -d --build
+```
 
-## 7. Decisiones pendientes
-
-- [ ] TTL exacto del veredicto (¿24 h? ¿48 h?) y del precio.
-- [ ] Modelo de Claude a usar (equilibrio coste/calidad — probablemente Haiku
-      para el veredicto por coste, evaluar en la fase de pruebas).
-- [ ] Fuente de la API key de Claude en runtime (env var / `.env` / secreto Docker).
-- [ ] ¿Redis para rate-limit o basta con Postgres al inicio? (empezar con Postgres).
-- [ ] Diseño visual del mini-frontend.
-
-## 8. Roadmap
-
-1. **[hecho]** Definir propósito, arquitectura y esquema de datos (este doc).
-2. Validar el flujo FMP → Claude con un script de prueba (medir tokens reales).
-3. Montar el esqueleto: `docker-compose`, `Dockerfile`, `requirements`, esquema SQL.
-4. Endpoint `/api/analysis/{ticker}` con caché en Postgres.
-5. Blindaje anti-abuso (validación de ticker + rate-limit).
-6. Mini-frontend.
-7. Pulido, métricas de tokens y despliegue.
+- API + frontend: <http://localhost:8000>  ·  docs: <http://localhost:8000/docs>
+- El esquema SQL se aplica solo en el primer arranque (`db/` montado en
+  `docker-entrypoint-initdb.d`).
+- El `frontend/` va **bind-mounted**: editas HTML/CSS/JS y ves el cambio con solo
+  refrescar el navegador (sin reconstruir). El código Python sí requiere
+  `docker compose up -d --build web`.
 
 ---
 
-## 9. Estructura del repositorio (prevista)
+## 7. Despliegue en Render (PaaS)
+
+La imagen ya está lista para PaaS: uvicorn escucha el `$PORT` que inyecta Render y
+el `frontend/` va **horneado** en la imagen (no depende del bind-mount).
+
+1. **Postgres gestionado** — crea una instancia y copia su *Internal Database URL*.
+2. **Web Service (Docker)** — apunta a `backend/Dockerfile` con *Root Directory* `.`
+   (el contexto de build es la raíz del repo).
+3. **Aplica el esquema una vez** contra la BD de Render (el truco de
+   `docker-entrypoint-initdb.d` NO corre en Postgres gestionado):
+   ```bash
+   psql "<EXTERNAL_DATABASE_URL>" -f db/schema.sql
+   ```
+4. **Variables de entorno** (ver `.env.example`): `DATABASE_URL`, `FMP_API_KEY`,
+   `BASE_URL_FMP`, `ANTHROPIC_API_KEY`, `CLAUDE_MODEL`, `MAX_TOKENS`,
+   `PROMPT_INSTRUCCIONES`, `CHAT_SYSTEM_PROMPT`.
+
+> El servicio `db` del `docker-compose.yml` es **solo para desarrollo local**; en
+> Render se usa el Postgres gestionado.
+
+---
+
+## 8. Estructura del repositorio
 
 ```
 Finlytics/
-├── backend/          # FastAPI (Python): rutas, lógica FMP + Claude, caché
-├── frontend/         # mini-frontend (HTML/JS que consume la API)
-├── db/               # esquema SQL e inicialización de Postgres
-├── docker-compose.yml
-├── README.md         # este documento
-└── CLAUDE.md         # guía para sesiones de Claude Code
+├── backend/            # FastAPI: main.py (rutas), service.py, fmp.py, claude.py,
+│                       #          db.py, dtos.py, errors.py, utils.py, Dockerfile
+├── frontend/           # mini-frontend (HTML/CSS/JS por pantalla)
+├── db/schema.sql       # esquema de Postgres
+├── docker-compose.yml  # dev local (web + db)
+├── .dockerignore       # higiene del contexto de build (raíz)
+├── .env.example        # plantilla de variables de entorno
+├── README.md           # este documento
+└── CLAUDE.md           # guía para sesiones de Claude Code
 ```
+
+---
 
 > **Disclaimer:** Finlytics es una herramienta informativa/educativa. Nada de lo
 > que muestra constituye asesoría financiera.

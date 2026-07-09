@@ -1,0 +1,19 @@
+# Higiene del contexto de build (raiz del repo)
+.venv/
+venv/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
+# Secretos: NUNCA hornearlos en la imagen
+.env
+**/.env
+
+# VCS / docs / SO
+.git/
+.gitignore
+*.md
+flujo.md
+FMP.txt
+.DS_Store
+Thumbs.db
